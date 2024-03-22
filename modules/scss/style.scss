@@ -4,6 +4,7 @@ $block_size:25px;
     margin: 0px;
     padding: 0px;
     box-sizing: border-box;
+    font-family: monospace;
 }
 
 body{
@@ -65,6 +66,21 @@ body{
 
     &:hover > .sprite-block:not(:hover, .highlighted){
         opacity: 0.3;
+    }
+}
+
+.right-side-cont{
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .auto-cont{
+    
+        span{
+            font-size: 30px;
+            color: whitesmoke;
+        }
     }
 }
 

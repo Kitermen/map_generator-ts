@@ -42,16 +42,33 @@ const main_function = () =>{
     })
     for(let i = 0; i < 44 * 38; i += 1){
         const {div, img} = gen_right_block();
-        div.addEventListener("click", ()=>{
-            //guard, ! - 1 , bezwartościowa zmienna
+
+        const draw_handler = ()=>{
             if(!curr_data) return;
+
             div.addEventListener("contextmenu", (e)=>{
                 e.preventDefault();
                 img.src = empty_block;
             }, {once: true});
+
             filled_img = img;
             img.src = curr_data;
+        }
+
+        div.addEventListener("click", (e)=>{
+            e.preventDefault();
+            draw_handler();
         });
+
+        div.addEventListener("mouseenter", (e)=>{
+            e.preventDefault();
+            //buttons - przyciski myszy
+            if(e.buttons != 1) return;
+
+            draw_handler();
+            console.log(e.button);
+        })
+
         right.appendChild(div);
     }
 }

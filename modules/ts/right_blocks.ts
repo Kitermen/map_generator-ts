@@ -8,10 +8,11 @@ type ReturnParams = {
 const gen_right_block = (): ReturnParams=>{
     const div = document.createElement("div");
     div.classList.add("empty-block");
-
+    div.draggable = false;
     const img = new Image();
     img.classList.add("sprite-image");
     img.src = empty_block;
+    img.draggable = false;
 
     div.appendChild(img)
 
