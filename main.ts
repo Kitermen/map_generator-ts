@@ -1,8 +1,8 @@
-import sprite_img from "./modules/ts/sprite";
-import read_tts from "./modules/ts/read_tts";
-import gen_left_block from "./modules/ts/left_blocks";
-import gen_right_block from "./modules/ts/right_blocks";
-import empty_block from "./modules/ts/empty_block";
+import sprite_img from "./src/ts/sprite";
+import read_tts from "./src/ts/read_tts";
+import gen_left_block from "./src/ts/left_blocks";
+import gen_right_block from "./src/ts/right_blocks";
+import empty_block from "./src/ts/empty_block";
 
 let curr_data = "";
 let curr_div:HTMLDivElement | undefined = undefined;

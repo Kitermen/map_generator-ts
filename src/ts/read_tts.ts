@@ -2,13 +2,11 @@ const read_tts = (text: string) => {
     let voices = speechSynthesis.getVoices();
 
     const speak = ()=>{
-        
-        
         voices = voices.filter(x => x.lang === 'ja-JP');
         console.log(voices);
         let utterance = new SpeechSynthesisUtterance(text);
-        utterance.pitch = 2
-        utterance.rate = 1
+        utterance.pitch = 1.2
+        utterance.rate = 1.1
         utterance.voice = voices[0];
 
         speechSynthesis.speak(utterance);
