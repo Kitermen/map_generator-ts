@@ -10,6 +10,11 @@ body{
     background-color: black;
 }
 
+.container{
+    display: flex;
+    gap: 50px;
+}
+
 .left-side-cont{
     width: fit-content;
     margin: 20px 0px 0px 20px;
@@ -27,7 +32,7 @@ body{
     }
 }
 
-#app{
+#app_left{
     width: fit-content;
     display: grid;
     grid-template-columns: repeat(16, 1fr);
@@ -60,5 +65,24 @@ body{
 
     &:hover > .sprite-block:not(:hover, .highlighted){
         opacity: 0.3;
+    }
+}
+
+#app_right{
+    width: fit-content;
+    display: grid;
+    grid-template-columns: repeat(44, 1fr);
+    gap: 1px;
+    border: 5px dashed whitesmoke;
+    
+    .empty-block{
+        width: $block_size;
+        height: $block_size;
+        border: 1px dotted gray;
+    
+        .sprite-image{
+            width: 100%;
+            height: 100%;
+        }
     }
 }

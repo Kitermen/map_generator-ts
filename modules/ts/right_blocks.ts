@@ -1,21 +1,17 @@
-type Sprite = {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-}
+import empty_block from "./empty_block";
 
 type ReturnParams = {
     div: HTMLDivElement;
     img: HTMLImageElement;
 }
 
-const gen_right_block = (sprite: Sprite): ReturnParams=>{
+const gen_right_block = (): ReturnParams=>{
     const div = document.createElement("div");
     div.classList.add("empty-block");
 
     const img = new Image();
     img.classList.add("sprite-image");
+    img.src = empty_block;
 
     div.appendChild(img)
 
