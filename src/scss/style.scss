@@ -101,5 +101,11 @@ body{
             width: 100%;
             height: 100%;
         }
+
+        .right-highlighted{
+            border: 2px solid lightcoral;
+            scale: 1.1;
+            transition: scale 0.5s;
+        }
     }
 }

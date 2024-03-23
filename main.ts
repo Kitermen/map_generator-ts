@@ -1,7 +1,6 @@
 import sprite_img from "./src/ts/sprite";
 import read_tts from "./src/ts/read_tts";
-import gen_left_block from "./src/ts/left_blocks";
-import gen_right_block from "./src/ts/right_blocks";
+import Blocks from "./src/ts/generating/Blocks";
 import empty_block from "./src/ts/empty_block";
 
 let curr_data = "";
@@ -9,8 +8,13 @@ let curr_div:HTMLDivElement | undefined = undefined;
 
 let filled_img:HTMLImageElement | undefined = undefined;
 
+let right_blocks:HTMLImageElement[] = [];
+let last_rImg_clicked:number = -1;
+
+
 const main_function = () =>{
     const left = document.getElementById("app_left")!;
+    const check:HTMLInputElement = document.querySelector(".auto-allow")!;
     left.addEventListener("contextmenu", (e)=>{
         e.preventDefault()
         if(!curr_div) return;
@@ -21,9 +25,18 @@ const main_function = () =>{
     for(let i = 0; i < 40; i += 1){
         for(let j = 0; j < 16; j += 1){
             const x = i < 20 ? j * 48 : j * 48 + 768;
-            const {div, data} = gen_left_block({x , y: (i % 20)*48, w: 48, h: 48});
+            const {div, data} = Blocks.gen_left({x , y: (i % 20)*48, w: 48, h: 48});
 
             div.addEventListener("click", ()=>{
+                if(check.checked){
+                    if(last_rImg_clicked != -1){
+                        right_blocks[last_rImg_clicked].src = data;
+                        right_blocks[last_rImg_clicked].classList.remove("right-highlighted");
+                        last_rImg_clicked += 1;
+                        right_blocks[last_rImg_clicked].classList.add("right-highlighted");
+                        return;
+                    }
+                }
                 if(curr_div){
                     curr_div.classList.remove("highlighted");
                 }
@@ -41,8 +54,11 @@ const main_function = () =>{
         e.preventDefault();
     })
     for(let i = 0; i < 44 * 38; i += 1){
-        const {div, img} = gen_right_block();
-
+        const {div, img} = Blocks.gen_right();
+        const index = i;
+        right_blocks.push(img);
+        //console.log(right_blocks);
+        
         const draw_handler = ()=>{
             if(!curr_data) return;
 
@@ -57,6 +73,13 @@ const main_function = () =>{
 
         div.addEventListener("click", (e)=>{
             e.preventDefault();
+            if(check.checked && e.altKey){
+                if(last_rImg_clicked != -1) 
+                    right_blocks[last_rImg_clicked].classList.remove("right-highlighted"); 
+                last_rImg_clicked = index;
+                right_blocks[index].classList.add("right-highlighted");
+                return;
+            }
             draw_handler();
         });
 
