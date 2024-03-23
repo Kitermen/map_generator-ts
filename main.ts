@@ -8,7 +8,7 @@ let curr_div:HTMLDivElement | undefined = undefined;
 
 let filled_img:HTMLImageElement | undefined = undefined;
 
-let right_blocks:HTMLImageElement[] = [];
+const right_blocks:HTMLImageElement[] = [];
 let last_rImg_clicked:number = -1;
 
 
@@ -55,7 +55,7 @@ const main_function = () =>{
     })
     for(let i = 0; i < 44 * 38; i += 1){
         const {div, img} = Blocks.gen_right();
-        const index = i;
+        let index = i;
         right_blocks.push(img);
         //console.log(right_blocks);
         
@@ -64,6 +64,8 @@ const main_function = () =>{
 
             div.addEventListener("contextmenu", (e)=>{
                 e.preventDefault();
+                console.log("XD");
+                
                 img.src = empty_block;
             }, {once: true});
 
@@ -73,13 +75,16 @@ const main_function = () =>{
 
         div.addEventListener("click", (e)=>{
             e.preventDefault();
-            if(check.checked && e.altKey){
-                if(last_rImg_clicked != -1) 
-                    right_blocks[last_rImg_clicked].classList.remove("right-highlighted"); 
+            if(check.checked){
+            // if(check.checked && e.altKey){
+                if(last_rImg_clicked != -1){
+                    right_blocks[last_rImg_clicked].classList.remove("right-highlighted");
+                }
                 last_rImg_clicked = index;
                 right_blocks[index].classList.add("right-highlighted");
                 return;
             }
+            right_blocks.forEach(block=>{block.classList.remove("right-highlighted")});
             draw_handler();
         });
 
