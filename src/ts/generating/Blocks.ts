@@ -12,7 +12,7 @@ type ReturnParams = {
     div: HTMLDivElement;
 }
 
-type ReturnLeft = ReturnParams & {data: string};
+type ReturnLeft = ReturnParams & {canvas: HTMLCanvasElement};
 type ReturnRight = ReturnLeft & {img: HTMLImageElement};
 
 export default class Blocks{
@@ -24,19 +24,14 @@ export default class Blocks{
         const canvas = document.createElement("canvas");
         canvas.width = 48;
         canvas.height = 48;
-    
+        canvas.classList.add("canvas-left");
+
         const ctx = canvas.getContext("2d");
         if(ctx) ctx.drawImage(sprite_img, sprite.x, sprite.y, sprite.w, sprite.h, 0, 0, 48, 48);
+
+        div.appendChild(canvas);
     
-        const data = canvas.toDataURL();
-    
-        const img = new Image();
-        img.classList.add("sprite-image");
-        img.src = data;
-    
-        div.appendChild(img)
-    
-        return {div, data} as ReturnLeft;
+        return {div, canvas} as ReturnLeft;
     }
 
     static gen_right(): ReturnRight{

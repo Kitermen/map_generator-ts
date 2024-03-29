@@ -5,6 +5,7 @@ $block_size:25px;
     padding: 0px;
     box-sizing: border-box;
     font-family: monospace;
+    user-select: none;
 }
 
 body{
@@ -59,7 +60,7 @@ body{
             scale: 1.2;
         }
 
-        .sprite-image{
+        .canvas-left{
             width: 100%;
             height: 100%;
         }
@@ -86,11 +87,11 @@ body{
 }
 
 #app_right{
-    width: fit-content;
+    width: calc(44*$block_size);
+    height: calc(38*$block_size);
     display: grid;
     grid-template-columns: repeat(44, 1fr);
-    gap: 1px;
-    border: 5px dashed whitesmoke;
+    outline: 5px dashed whitesmoke;
     
     .empty-block{
         width: $block_size;
@@ -98,8 +99,8 @@ body{
         border: 1px dotted gray;
     
         .sprite-image{
-            width: 100%;
-            height: 100%;
+            width: $block_size;
+            height: $block_size;
         }
 
         .right-highlighted{
@@ -107,5 +108,10 @@ body{
             scale: 1.1;
             transition: scale 0.5s;
         }
+    }
+    .plane{
+        position: absolute;
+        border: 1px solid darkgoldenrod;
+        background-color: rgba($color: yellow, $alpha: 0.5);
     }
 }
