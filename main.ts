@@ -41,8 +41,7 @@ const main_function = () =>{
         e.preventDefault();
     })
     right.addEventListener("mousedown", (e)=>{
-        console.log(selected_right);
-        
+        let selected_right_local = new Set<number>();
         const div = document.createElement("div");
         const start_pos = {x: e.pageX, y: e.pageY};
         const last_pos = {x: e.pageX, y: e.pageY};
@@ -58,11 +57,11 @@ const main_function = () =>{
         const controller = new AbortController();
 
         const color = async(inds: Set<number>)=>{
-            selected_right.forEach(sel=>{if(!inds.has(sel)) right_blocks[sel].classList.remove("right-highlighted")})
+            selected_right_local.forEach(sel=>{if(!inds.has(sel) && !selected_right.has(sel)) right_blocks[sel].classList.remove("right-highlighted")})
             inds.forEach(ind => {
-                if(!selected_right.has(ind)){right_blocks[ind].classList.add("right-highlighted")}
+                if(!selected_right_local.has(ind)){right_blocks[ind].classList.add("right-highlighted")}
             });
-            selected_right = inds;
+            selected_right_local = inds;
         }
 
         const select_handler = ()=>{
@@ -134,8 +133,14 @@ const main_function = () =>{
 
         }, {signal: controller.signal});
 
-        right.addEventListener("mouseup", ()=>{
+        right.addEventListener("mouseup", (e)=>{
             select_handler();
+            if(e.ctrlKey){
+                selected_right_local.forEach(sel=>selected_right.add(sel))
+            }
+            else{
+                selected_right = selected_right_local;
+            }
             controller.abort();
             div.remove();
         }, {once: true});  
