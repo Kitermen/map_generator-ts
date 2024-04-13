@@ -7,7 +7,7 @@ import empty_block from "./src/ts/empty_block";
 
 const main_function = () =>{
     const right_blocks:HTMLImageElement[] = [];
-    let selected_right: number = -1;
+    let selected_right = new Set<number>()
 
     const left = document.getElementById("app_left")!;
     const check:HTMLInputElement = document.querySelector(".auto-allow")!;
@@ -15,18 +15,23 @@ const main_function = () =>{
     for(let i = 0; i < 40; i += 1){
         for(let j = 0; j < 16; j += 1){
             const x = i < 20 ? j * 48 : j * 48 + 768;
-            const {div, canvas} = Blocks.gen_left({x , y: (i % 20)*48, w: 48, h: 48});
+            //obiekt klasy
+            const blocksObj = Blocks.gen_left({x , y: (i % 20)*48, w: 48, h: 48});
+            //const {div, canvas} = blocksObj.gen_left();
 
             //listeners
-            canvas.addEventListener("click", ()=>{
-                if (selected_right == -1) return;
-                right_blocks[selected_right].src = canvas.toDataURL();
+            blocksObj.canvas.addEventListener("click", ()=>{
+                if(!selected_right.size) return;
+                const url = blocksObj.canvas.toDataURL()
+                selected_right.forEach(sel=>right_blocks[sel].src  = url)
                 console.log(check);  
-                if(check.checked){
-                    selected_right += 1;
-                } 
+                if(check.checked && selected_right.size == 1){
+                    selected_right[0] += 1;
+                }
+                selected_right.forEach(sel=>{right_blocks[sel].classList.remove("right-highlighted")})
+                selected_right = new Set();
             })
-            left.appendChild(div);
+            left.appendChild(blocksObj.div);
         }
     }
 
@@ -36,107 +41,123 @@ const main_function = () =>{
         e.preventDefault();
     })
     right.addEventListener("mousedown", (e)=>{
+        console.log(selected_right);
+        
         const div = document.createElement("div");
         const start_pos = {x: e.pageX, y: e.pageY};
         const last_pos = {x: e.pageX, y: e.pageY};
         div.classList.add("plane");
         right.appendChild(div);
         console.log(e);
+
+        let timeout = Date.now();
         
         div.style.top = `${e.pageY}px`;
         div.style.left = `${e.pageX}px`;
 
-
         const controller = new AbortController();
 
-        right.addEventListener("mousemove", (me)=>{
-            me.stopPropagation();
-            me.preventDefault();
-            //nie łapie dzieci (co)
-            console.log("XXX");
-            const page_y = me.pageY - start_pos.y;
-            const page_x = me.pageX - start_pos.x;
-            if(page_y < 0){
-                div.style.top = `${me.pageY}px`;
-            }
-            if(page_x < 0){
-                div.style.left = `${me.pageX}px`;
-            }
-            div.style.height = `${Math.abs(page_y)}px`;
-            div.style.width = `${Math.abs(page_x)}px`;
+        const color = async(inds: Set<number>)=>{
+            selected_right.forEach(sel=>{if(!inds.has(sel)) right_blocks[sel].classList.remove("right-highlighted")})
+            inds.forEach(ind => {
+                if(!selected_right.has(ind)){right_blocks[ind].classList.add("right-highlighted")}
+            });
+            selected_right = inds;
+        }
 
-            last_pos.x = me.pageX;
-            last_pos.y = me.pageY;
+        const select_handler = ()=>{
+            const _start_pos = {y: start_pos.y, x: start_pos.x};
+            const _last_pos = {y: last_pos.y, x: last_pos.x};
 
-        }, {signal: controller.signal});
-
-        right.addEventListener("mouseup", ()=>{
-            start_pos.y -= right.offsetTop;
-            start_pos.x -= right.offsetLeft;
-            last_pos.y -= right.offsetTop;
-            last_pos.x -= right.offsetLeft;
+            _start_pos.y -= right.offsetTop;
+            _start_pos.x -= right.offsetLeft;
+            _last_pos.y -= right.offsetTop;
+            _last_pos.x -= right.offsetLeft;
 
             const start = {
-                x: start_pos.x < last_pos.x ? start_pos.x : last_pos.x,
-                y: start_pos.y < last_pos.y ? start_pos.y : last_pos.y
+                x: _start_pos.x < _last_pos.x ? _start_pos.x : _last_pos.x,
+                y: _start_pos.y < _last_pos.y ? _start_pos.y : _last_pos.y
             }
 
             const end = {
-                x: start_pos.x > last_pos.x ? start_pos.x : last_pos.x,
-                y: start_pos.y > last_pos.y ? start_pos.y : last_pos.y
+                x: _start_pos.x > _last_pos.x ? _start_pos.x : _last_pos.x,
+                y: _start_pos.y > _last_pos.y ? _start_pos.y : _last_pos.y
             }
 
             const size = {
                 width: end.x - start.x,
                 height: end.y - start.y
             }
-
-            // size.x size.y === 0 -> single click
-
-            if(size.width < 10 || size.height < 10){
-                controller.abort();
-                div.remove();
-                return;
-            }
-
-            console.log(start, end,size.width, size.height);
-            
             
             const block_size = 25;
 
-            const indexes: number[] = []; 
+            const indexes = new Set<number>()
             for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top++){
                 const start_ind = top*44 + Math.floor(start.x / block_size);
-                indexes.push(...new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>start_ind+ind));
+                new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
             }
-            console.log(indexes);
+            if(Date.now() - timeout < 200){
+                if(indexes.size){
+                    //1 - true
+                    color(indexes);
+                }
+            }
+            timeout = Date.now();
+            
+            return indexes;
+        }
 
+        right.addEventListener("mousemove", (me)=>{
+            me.stopPropagation();
+            me.preventDefault();                                                                                                                                                                                            
+            //nie łapie dzieci (co)
+            const page_y = me.pageY - start_pos.y;
+            const page_x = me.pageX - start_pos.x;
+            //console.log(start_pos);                                                                                                   
+            if(page_y < 0){                                                 
+                div.style.top = `${me.pageY}px`;
+            }
+            else div.style.top = `${start_pos.y}px`;
+
+            if(page_x < 0){                              
+                div.style.left = `${me.pageX}px`;
+            }
+            else div.style.left = `${start_pos.x}px`;
+
+            div.style.height = `${Math.abs(page_y)}px`;
+            div.style.width = `${Math.abs(page_x)}px`;
+
+            last_pos.x = me.pageX;
+            last_pos.y = me.pageY;
+            
+            select_handler();
+
+        }, {signal: controller.signal});
+
+        right.addEventListener("mouseup", ()=>{
+            select_handler();
             controller.abort();
             div.remove();
         }, {once: true});  
     })
 
     for(let i = 0; i < 44 * 38; i += 1){
-        const {div, img} = Blocks.gen_right();
+        const blockObj = Blocks.gen_right();
         let index = i;
-        img.addEventListener("click", ()=>{
-            if(selected_right != -1){
-                right_blocks[selected_right].classList.remove("right-highlighted")
-            } 
-            selected_right = index;
-            img.classList.add("right-highlighted");
+        blockObj.img.addEventListener("mousedown", (e)=>{
+            if(!e.ctrlKey){
+                selected_right.forEach(sel=>right_blocks[sel].classList.remove("right-highlighted"))    
+                selected_right = new Set();
+            }
+            selected_right.add(index)
+            blockObj.img.classList.add("right-highlighted");
         })
-        right_blocks.push(img);
-        right.appendChild(div);
+        right_blocks.push(blockObj.img);
+        right.appendChild(blockObj.div);
     }
 }
 
 sprite_img.addEventListener("load", main_function);
-
-
-
-
-
 
 
 const hehe = document.querySelector(".cocainen")!;

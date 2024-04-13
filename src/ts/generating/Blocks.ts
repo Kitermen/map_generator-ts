@@ -1,23 +1,29 @@
 import sprite_img from "../sprite";
 import empty_block from "../empty_block";
+import { LeftBlock, RightBlock } from "./InfoBlocks";
 
-type Sprite = {
+interface BlocksPos{
     x: number;
     y: number;
+}
+
+interface BlocksSizing extends BlocksPos{
     w: number;
     h: number;
 }
 
-type ReturnParams = {
-    div: HTMLDivElement;
-}
+// interface BlocksData extends BlocksSizing{}
 
-type ReturnLeft = ReturnParams & {canvas: HTMLCanvasElement};
-type ReturnRight = ReturnLeft & {img: HTMLImageElement};
+// type ReturnParams = {
+//     div: HTMLDivElement;
+// }
+
+// type ReturnLeft = ReturnParams & {canvas: HTMLCanvasElement};
+// type ReturnRight = ReturnParams & {img: HTMLImageElement};
 
 export default class Blocks{
-
-    static gen_left(sprite: Sprite): ReturnLeft{
+    
+    static gen_left({x,y,w,h}: BlocksSizing): LeftBlock{
         const div = document.createElement("div");
         div.classList.add("sprite-block");
     
@@ -27,14 +33,14 @@ export default class Blocks{
         canvas.classList.add("canvas-left");
 
         const ctx = canvas.getContext("2d");
-        if(ctx) ctx.drawImage(sprite_img, sprite.x, sprite.y, sprite.w, sprite.h, 0, 0, 48, 48);
+        if(ctx) ctx.drawImage(sprite_img, x, y, w, h, 0, 0, 48, 48);
 
         div.appendChild(canvas);
-    
-        return {div, canvas} as ReturnLeft;
+        
+        return new LeftBlock(div, canvas);
     }
 
-    static gen_right(): ReturnRight{
+    static gen_right(): RightBlock{
         const div = document.createElement("div");
         div.classList.add("empty-block");
         div.draggable = false;
@@ -45,6 +51,6 @@ export default class Blocks{
 
         div.appendChild(img)
 
-        return {div, img} as ReturnRight;
+        return new RightBlock(div, img);
     }
 }
