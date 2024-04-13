@@ -22,14 +22,22 @@ const main_function = () =>{
             //listeners
             blocksObj.canvas.addEventListener("click", ()=>{
                 if(!selected_right.size) return;
-                const url = blocksObj.canvas.toDataURL()
-                selected_right.forEach(sel=>right_blocks[sel].src  = url)
+                const url = blocksObj.canvas.toDataURL();
+                selected_right.forEach(sel=>right_blocks[sel].src  = url);
                 console.log(check);  
                 if(check.checked && selected_right.size == 1){
                     selected_right[0] += 1;
                 }
-                selected_right.forEach(sel=>{right_blocks[sel].classList.remove("right-highlighted")})
-                selected_right = new Set();
+                selected_right.forEach(sel=>{right_blocks[sel].classList.remove("right-highlighted")});
+                if(!check.checked){
+                    selected_right = new Set();
+                }
+                else{
+                    const index = [...selected_right].pop()!+1;
+                    selected_right = new Set([index]);
+                    right_blocks[index].classList.add("right-highlighted");
+                    //! == nie może być undefined
+                }
             })
             left.appendChild(blocksObj.div);
         }
@@ -98,7 +106,7 @@ const main_function = () =>{
                 new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
                 //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
             }
-            if(Date.now() - timeout < 200){
+            if(Date.now() - timeout < 250){
                 if(indexes.size){
                     //1 - true
                     color(indexes);
@@ -139,9 +147,9 @@ const main_function = () =>{
         right.addEventListener("mouseup", (e)=>{
             select_handler();
             if(e.ctrlKey){
-                selected_right_local.forEach(sel=>selected_right.add(sel))
+                selected_right_local.forEach(sel=>selected_right.add(sel));
             }
-            else{
+            else if(selected_right_local.size){
                 selected_right = selected_right_local;
             }
             controller.abort();
@@ -159,6 +167,7 @@ const main_function = () =>{
             }
             selected_right.add(index);
             blockObj.img.classList.add("right-highlighted");
+            
         })
         right_blocks.push(blockObj.img);
         right.appendChild(blockObj.div);
