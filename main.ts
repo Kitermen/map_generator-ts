@@ -73,11 +73,13 @@ const main_function = () =>{
             _last_pos.y -= right.offsetTop;
             _last_pos.x -= right.offsetLeft;
 
+            //lewa górna pozycja
             const start = {
                 x: _start_pos.x < _last_pos.x ? _start_pos.x : _last_pos.x,
                 y: _start_pos.y < _last_pos.y ? _start_pos.y : _last_pos.y
             }
 
+            //prawa dolna pozycja
             const end = {
                 x: _start_pos.x > _last_pos.x ? _start_pos.x : _last_pos.x,
                 y: _start_pos.y > _last_pos.y ? _start_pos.y : _last_pos.y
@@ -94,6 +96,7 @@ const main_function = () =>{
             for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top++){
                 const start_ind = top*44 + Math.floor(start.x / block_size);
                 new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
+                //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
             }
             if(Date.now() - timeout < 200){
                 if(indexes.size){
@@ -151,10 +154,10 @@ const main_function = () =>{
         let index = i;
         blockObj.img.addEventListener("mousedown", (e)=>{
             if(!e.ctrlKey){
-                selected_right.forEach(sel=>right_blocks[sel].classList.remove("right-highlighted"))    
+                selected_right.forEach(sel=>right_blocks[sel].classList.remove("right-highlighted"));    
                 selected_right = new Set();
             }
-            selected_right.add(index)
+            selected_right.add(index);
             blockObj.img.classList.add("right-highlighted");
         })
         right_blocks.push(blockObj.img);
