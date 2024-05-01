@@ -31,7 +31,7 @@ export default class Blocks{
         canvas.width = 48;
         canvas.height = 48;
         canvas.classList.add("canvas-left");
-
+        
         const ctx = canvas.getContext("2d");
         if(ctx) ctx.drawImage(sprite_img, x, y, w, h, 0, 0, 48, 48);
 

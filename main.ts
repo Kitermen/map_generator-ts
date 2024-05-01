@@ -3,32 +3,67 @@ import read_tts from "./src/ts/read_tts";
 import Blocks from "./src/ts/generating/Blocks";
 import empty_block from "./src/ts/empty_block";
 
+const blank_image = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
+const save = (info: Map<number, number>)=>{
+    const data_object = JSON.stringify(Object.fromEntries(info.entries()))
+
+    const dowload_button = document.createElement("a")!;
+    const blob = new Blob([data_object]);
+
+    dowload_button.href = URL.createObjectURL(blob);
+    dowload_button.download = "data.json";
+    dowload_button.click();
+}
 
 const main_function = () =>{
     const right_blocks:HTMLImageElement[] = [];
-    let selected_right = new Set<number>()
+    const right_hash_map:Map<number, number> = new Map();
+    let selected_right = new Set<number>();
 
     const left = document.getElementById("app_left")!;
     const check:HTMLInputElement = document.querySelector(".auto-allow")!;
    
+    const left_indexes:string[] = [];
+
+
+    document.querySelector("button.save")?.addEventListener("click", ()=>save(right_hash_map));
+    const file_input: HTMLInputElement = document.querySelector("input.file_input")!;
+    file_input.addEventListener("change",async()=>{
+        const file = file_input.files![0];
+        const file_text = await file.text();
+        const json_data = JSON.parse(file_text);
+
+        const hash_map: Map<string, number> = new Map(Object.entries(json_data));
+        
+        for(const [key, value] of hash_map){
+            right_blocks[parseInt(key)].src = left_indexes[value];
+        }
+    })
+
+    let left_index = 0;
     for(let i = 0; i < 40; i += 1){
         for(let j = 0; j < 16; j += 1){
             const x = i < 20 ? j * 48 : j * 48 + 768;
             //obiekt klasy
             const blocksObj = Blocks.gen_left({x , y: (i % 20)*48, w: 48, h: 48});
+            left_indexes.push(blocksObj.canvas.toDataURL());
             //const {div, canvas} = blocksObj.gen_left();
 
             //listeners
+            const left_index_copy = left_index;
             blocksObj.canvas.addEventListener("click", ()=>{
                 if(!selected_right.size) return;
                 const url = blocksObj.canvas.toDataURL();
-                selected_right.forEach(sel=>right_blocks[sel].src  = url);
+                selected_right.forEach(sel=>{
+                    right_blocks[sel].src  = url;
+                    right_blocks[sel].classList.remove("right-highlighted");
+                    right_hash_map.set(sel, left_index_copy);
+                });
+                console.log(right_hash_map);
+                
                 console.log(check);  
-                if(check.checked && selected_right.size == 1){
-                    selected_right[0] += 1;
-                }
-                selected_right.forEach(sel=>{right_blocks[sel].classList.remove("right-highlighted")});
+
                 if(!check.checked){
                     selected_right = new Set();
                 }
@@ -40,6 +75,7 @@ const main_function = () =>{
                 }
             })
             left.appendChild(blocksObj.div);
+            left_index++;
         }
     }
 
@@ -159,6 +195,8 @@ const main_function = () =>{
 
     for(let i = 0; i < 44 * 38; i += 1){
         const blockObj = Blocks.gen_right();
+        blockObj.img.onerror = function(){this.src = blank_image};
+        blockObj.img.src = "";
         let index = i;
         blockObj.img.addEventListener("mousedown", (e)=>{
             if(!e.ctrlKey){
