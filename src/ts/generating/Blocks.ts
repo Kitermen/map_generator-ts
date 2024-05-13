@@ -1,5 +1,5 @@
 import sprite_img from "../sprite";
-import empty_block from "../empty_block";
+import { blank_image } from "../empty_block";
 import { LeftBlock, RightBlock } from "./InfoBlocks";
 
 interface BlocksPos{
@@ -46,7 +46,7 @@ export default class Blocks{
         div.draggable = false;
         const img = new Image();
         img.classList.add("sprite-image");
-        img.src = empty_block;
+        img.src = blank_image;
         img.draggable = false;
 
         div.appendChild(img)
