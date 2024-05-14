@@ -27,20 +27,27 @@ const blank_image = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAAL
 
 // const left_indexes:string[] = [];
 
+type plane_vector = {
+    x: number;
+    y: number;
+}
 
 class MainController{
     menu: Menu
-
-    right_side: HTMLDivElement;
-    right_blocks: HTMLImageElement[] = [];
-    right_hash_map: Map<number, number> = new Map();
-    copy_hash_map: Map<number, number> = new Map();
-    selected_right = new Set<number>();
 
     left_side: HTMLDivElement;
     left_images: string[];
 
     check: HTMLInputElement;
+
+    right_side: HTMLDivElement;
+    right_blocks: HTMLImageElement[] = [];
+    previous_right_selected: Set<number>;
+    right_hash_map: Map<number, number> = new Map();
+    selected_right = new Set<number>();
+
+    copy_hash_map: Map<number, number> = new Map();
+    timeout: number;
 
     constructor(){
         this.left_side = document.querySelector("#app_left")!
@@ -49,6 +56,8 @@ class MainController{
         this.check = document.querySelector(".auto-allow")!
 
         this.right_side = document.querySelector("#app_right")!;
+        this.previous_right_selected = new Set<number>();
+        this.timeout = 0;
 
         this.left_generating();
         this.right_generating();
@@ -120,16 +129,64 @@ class MainController{
         }
     }
 
+    async color(inds: Set<number>){
+        this.previous_right_selected.forEach(sel=>{if(!inds.has(sel) && !this.selected_right.has(sel)) this.right_blocks[sel].classList.remove("right-highlighted")})
+        inds.forEach(ind => {
+            if(!this.previous_right_selected.has(ind)){this.right_blocks[ind].classList.add("right-highlighted")}
+        });
+        this.previous_right_selected = inds;
+    }
+
+    select_handler(start_pos: plane_vector, last_pos: plane_vector){
+        const _start_pos = {y: start_pos.y, x: start_pos.x};
+        const _last_pos = {y: last_pos.y, x: last_pos.x};
+
+        _start_pos.y -= this.right_side.offsetTop;
+        _start_pos.x -= this.right_side.offsetLeft;
+        _last_pos.y -= this.right_side.offsetTop;
+        _last_pos.x -= this.right_side.offsetLeft;
+
+        //lewa górna pozycja
+        const start = {
+            x: _start_pos.x < _last_pos.x ? _start_pos.x : _last_pos.x,
+            y: _start_pos.y < _last_pos.y ? _start_pos.y : _last_pos.y
+        }
+
+        //prawa dolna pozycja
+        const end = {
+            x: _start_pos.x > _last_pos.x ? _start_pos.x : _last_pos.x,
+            y: _start_pos.y > _last_pos.y ? _start_pos.y : _last_pos.y
+        }
+
+        const size = {
+            width: end.x - start.x,
+            height: end.y - start.y
+        }
+        
+        const block_size = 25;
+
+        const indexes = new Set<number>()
+        for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top++){
+            const start_ind = top*44 + Math.floor(start.x / block_size);
+            new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
+            //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
+        }
+        if(Date.now() - this.timeout < 250){
+            if(indexes.size) this.color(indexes);
+        }
+        this.timeout = Date.now();
+        
+        return indexes;
+    }
+    
+
     mass_right_selecting(e: MouseEvent){
-        let selected_right_local = new Set<number>();
         const div = document.createElement("div");
         const start_pos = {x: e.pageX, y: e.pageY};
         const last_pos = {x: e.pageX, y: e.pageY};
         div.classList.add("plane");
         this.right_side.appendChild(div);
-        console.log(e);
 
-        let timeout = Date.now();
         
         div.style.top = `${e.pageY}px`;
         div.style.left = `${e.pageX}px`;
@@ -137,59 +194,6 @@ class MainController{
         //mousemove - turnoff to remove massive lags from code
         const controller = new AbortController();
 
-
-        const color = async(inds: Set<number>)=>{
-            selected_right_local.forEach(sel=>{if(!inds.has(sel) && !this.selected_right.has(sel)) this.right_blocks[sel].classList.remove("right-highlighted")})
-            inds.forEach(ind => {
-                if(!selected_right_local.has(ind)){this.right_blocks[ind].classList.add("right-highlighted")}
-            });
-            selected_right_local = inds;
-        }
-
-        const select_handler = ()=>{
-            const _start_pos = {y: start_pos.y, x: start_pos.x};
-            const _last_pos = {y: last_pos.y, x: last_pos.x};
-
-            _start_pos.y -= this.right_side.offsetTop;
-            _start_pos.x -= this.right_side.offsetLeft;
-            _last_pos.y -= this.right_side.offsetTop;
-            _last_pos.x -= this.right_side.offsetLeft;
-
-            //lewa górna pozycja
-            const start = {
-                x: _start_pos.x < _last_pos.x ? _start_pos.x : _last_pos.x,
-                y: _start_pos.y < _last_pos.y ? _start_pos.y : _last_pos.y
-            }
-
-            //prawa dolna pozycja
-            const end = {
-                x: _start_pos.x > _last_pos.x ? _start_pos.x : _last_pos.x,
-                y: _start_pos.y > _last_pos.y ? _start_pos.y : _last_pos.y
-            }
-
-            const size = {
-                width: end.x - start.x,
-                height: end.y - start.y
-            }
-            
-            const block_size = 25;
-
-            const indexes = new Set<number>()
-            for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top++){
-                const start_ind = top*44 + Math.floor(start.x / block_size);
-                new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
-                //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
-            }
-            if(Date.now() - timeout < 250){
-                if(indexes.size){
-                    //1 - true
-                    color(indexes);
-                }
-            }
-            timeout = Date.now();
-            
-            return indexes;
-        }
 
         this.right_side.addEventListener("mousemove", (me)=>{
             me.stopPropagation();
@@ -214,24 +218,22 @@ class MainController{
             last_pos.x = me.pageX;
             last_pos.y = me.pageY;
             
-            select_handler();
+            this.select_handler(start_pos, last_pos);
 
         }, {signal: controller.signal});
 
         this.right_side.addEventListener("mouseup", (e)=>{
-            select_handler();
+            this.select_handler(start_pos, last_pos);
             if(e.ctrlKey){
-                selected_right_local.forEach(sel=>this.selected_right.add(sel));
+                this.previous_right_selected.forEach(sel=>this.selected_right.add(sel));
             }
-            else if(selected_right_local.size){
-                this.selected_right = selected_right_local;
+            else if(this.previous_right_selected.size){
+                this.selected_right = this.previous_right_selected;
             }
             controller.abort();
             div.remove();
         }, {once: true});  
     }
-
-    
 
     async save_to_file(info: Map<number, number>){
         const data_object = JSON.stringify(Object.fromEntries(info.entries()))
@@ -258,11 +260,8 @@ class MainController{
     }
 }
 
-const main_function = () =>{
-    const controller = new MainController();
-}
 
-sprite_img.addEventListener("load", main_function);
+sprite_img.addEventListener("load", () => {const controller = new MainController()});
 
 
 const hehe = document.querySelector(".cocainen")!;
