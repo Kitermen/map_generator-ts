@@ -32,6 +32,13 @@ type plane_vector = {
     y: number;
 }
 
+interface plane_copy{
+    url: string;
+    x: number;
+    y: number;
+}
+
+
 class MainController{
     menu: Menu
 
@@ -47,6 +54,8 @@ class MainController{
     selected_right = new Set<number>();
 
     copy_hash_map: Map<number, number> = new Map();
+    copied_indexes: plane_copy[] = [];
+
     timeout: number;
 
     constructor(){
@@ -66,21 +75,24 @@ class MainController{
 
         this.menu = new Menu("menu", "menu-btn")
         .addMenu(document.querySelector(".right-side-cont")!)
-        .callback("save", ()=>this.save_to_file(this.right_hash_map), "change")
-        .callback("load", (element)=>this.load_file(element as HTMLInputElement), "change")
+
+        .callback("copy", ()=>this.copy(), "click", "c")
+        .callback("paste", ()=>this.paste(), "click", "v")
+
+        .callback("save", ()=>this.save_to_file(this.right_hash_map), "click", "s")
+        .callback("load", (element)=>this.load_file(element as HTMLInputElement), "change", "l")
 
     }
 
     left_generating(){
         let left_index = 0;
-        const left_images: string[] = [];
 
         for(let i = 0; i < 40; i += 1){
             for(let j = 0; j < 16; j += 1){
                 const x = i < 20 ? j * 48 : j * 48 + 768;
                 //class obj
                 const blocksObj = Blocks.gen_left({x , y: (i % 20)*48, w: 48, h: 48});
-                left_images.push(blocksObj.canvas.toDataURL());
+                this.left_images.push(blocksObj.canvas.toDataURL());
                 //const {div, canvas} = blocksObj.gen_left();
 
                 //listeners
@@ -117,6 +129,7 @@ class MainController{
             const blockObj = Blocks.gen_right();
             let index = i;
             blockObj.img.addEventListener("mousedown", (e)=>{
+                if(e.button === 2) return;
                 if(!e.ctrlKey){
                     this.selected_right.forEach(sel=>this.right_blocks[sel].classList.remove("right-highlighted"));    
                     this.selected_right = new Set();
@@ -166,7 +179,7 @@ class MainController{
         const block_size = 25;
 
         const indexes = new Set<number>()
-        for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top++){
+        for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top += 1){
             const start_ind = top*44 + Math.floor(start.x / block_size);
             new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
             //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
@@ -181,6 +194,7 @@ class MainController{
     
 
     mass_right_selecting(e: MouseEvent){
+        if(e.button === 2) return;
         const div = document.createElement("div");
         const start_pos = {x: e.pageX, y: e.pageY};
         const last_pos = {x: e.pageX, y: e.pageY};
@@ -247,6 +261,10 @@ class MainController{
     }
 
     async load_file(file_input: HTMLInputElement){
+        if(file_input.files?.length == 0) {
+            file_input.click();
+            return;
+        }
         const file = file_input.files![0];
         const file_text = await file.text();
         const json_data = JSON.parse(file_text);
@@ -257,9 +275,59 @@ class MainController{
         for(const [key, value] of hash_map){
             this.right_blocks[parseInt(key)].src = this.left_images[value];
         }
+
+        file_input.value = "";
+    }
+
+    copy(){
+        const copied_indexes = [...this.selected_right];
+        const top_left_pos: plane_vector = {x: Infinity, y: Infinity};
+
+        let indexes_copy: plane_copy[] = copied_indexes.map((copied_index)=>{
+            const left_url = this.right_hash_map.get(copied_index);
+            const url = left_url ? this.left_images[left_url] : blank_image;
+
+            //values relative to plane copy
+            const index_pos: plane_copy = {
+                x: copied_index % 44,
+                y: Math.floor(copied_index / 44),
+                url
+            }
+
+            if(top_left_pos.y > index_pos.y) top_left_pos.y = index_pos.y;
+            if(top_left_pos.x > index_pos.x) top_left_pos.x = index_pos.x;
+
+            return index_pos;
+        })
+
+        indexes_copy = indexes_copy.map((copied_index)=>{
+            return {
+                x: copied_index.x - top_left_pos.x,
+                y: copied_index.y - top_left_pos.y,
+                url: copied_index.url
+            }
+        })
+
+        this.copied_indexes = indexes_copy;
+        console.log(this.copied_indexes);
+        
+    }
+
+    paste(){
+        if(!this.copied_indexes) return;
+        //const plane = document.createElement("div");
+        this.right_side.addEventListener("mousemove", this.paste_visualization);
+    }
+
+    paste_visualization(e: MouseEvent){
+        console.log(e);
+        const left_pos = e.pageX
+        const top_pos = e.pageY;
+        const first_index = Math.floor(top_pos / 25) * 44 + Math.floor(left_pos / 25);
+        //console.log(first_index);
+        
     }
 }
-
 
 sprite_img.addEventListener("load", () => {const controller = new MainController()});
 
