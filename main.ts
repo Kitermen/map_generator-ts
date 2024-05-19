@@ -49,12 +49,16 @@ class MainController{
 
     right_side: HTMLDivElement;
     right_blocks: HTMLImageElement[] = [];
+    start_ind: number;
     previous_right_selected: Set<number>;
     right_hash_map: Map<number, number> = new Map();
     selected_right = new Set<number>();
 
-    copy_hash_map: Map<number, number> = new Map();
+    copy_on: boolean = false;
     copied_indexes: plane_copy[] = [];
+    last_copy_position: number = -1;
+    //visualization
+    last_vis_copy: number[] = [];
 
     timeout: number;
 
@@ -67,6 +71,7 @@ class MainController{
         this.right_side = document.querySelector("#app_right")!;
         this.previous_right_selected = new Set<number>();
         this.timeout = 0;
+        //this.start_ind = 0;
 
         this.left_generating();
         this.right_generating();
@@ -105,11 +110,11 @@ class MainController{
                         this.right_blocks[sel].src  = url;
                         this.right_blocks[sel].classList.remove("right-highlighted");
                         this.right_hash_map.set(sel, left_index_copy);
-                        this.copy_hash_map.set(sel, left_index_copy);
                     })
 
                     if(!this.check.checked){
-                        this.selected_right = new Set();
+                        this.selected_right.clear();
+                        //this.previous_right_selected.clear();
                     }
                     else{
                         const index = [...this.selected_right].pop()!+1;
@@ -129,13 +134,18 @@ class MainController{
             const blockObj = Blocks.gen_right();
             let index = i;
             blockObj.img.addEventListener("mousedown", (e)=>{
-                if(e.button === 2) return;
-                if(!e.ctrlKey){
-                    this.selected_right.forEach(sel=>this.right_blocks[sel].classList.remove("right-highlighted"));    
-                    this.selected_right = new Set();
+                //KOPIED INDEXES --- wylaczenie zaznaczania kiedy lopiowanie wlaczone flaga
+                if(!this.copy_on){
+                    console.log(e.target);
+                    if(e.button === 2) return;
+                    if(!e.ctrlKey){
+                        this.selected_right.forEach(sel=>this.right_blocks[sel].classList.remove("right-highlighted"));    
+                        this.selected_right.clear();
+                        //this.previous_right_selected.clear();
+                    }
+                    this.selected_right.add(index);
+                    blockObj.img.classList.add("right-highlighted");
                 }
-                this.selected_right.add(index);
-                blockObj.img.classList.add("right-highlighted");
             })
             this.right_blocks.push(blockObj.img);
             this.right_side.appendChild(blockObj.div);
@@ -154,10 +164,10 @@ class MainController{
         const _start_pos = {y: start_pos.y, x: start_pos.x};
         const _last_pos = {y: last_pos.y, x: last_pos.x};
 
-        _start_pos.y -= this.right_side.offsetTop;
         _start_pos.x -= this.right_side.offsetLeft;
-        _last_pos.y -= this.right_side.offsetTop;
+        _start_pos.y -= this.right_side.offsetTop;
         _last_pos.x -= this.right_side.offsetLeft;
+        _last_pos.y -= this.right_side.offsetTop;
 
         //lewa górna pozycja
         const start = {
@@ -180,8 +190,10 @@ class MainController{
 
         const indexes = new Set<number>()
         for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top += 1){
-            const start_ind = top*44 + Math.floor(start.x / block_size);
-            new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(start_ind+ind));
+            this.start_ind = top*44 + Math.floor(start.x / block_size);
+            //console.log(this.start_ind);
+            
+            new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(this.start_ind+ind));
             //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
         }
         if(Date.now() - this.timeout < 250){
@@ -194,7 +206,8 @@ class MainController{
     
 
     mass_right_selecting(e: MouseEvent){
-        if(e.button === 2) return;
+        // || allowed code to finally execute paste method 
+        if(e.button === 2 || this.copied_indexes.length) return;
         const div = document.createElement("div");
         const start_pos = {x: e.pageX, y: e.pageY};
         const last_pos = {x: e.pageX, y: e.pageY};
@@ -210,24 +223,28 @@ class MainController{
 
 
         this.right_side.addEventListener("mousemove", (me)=>{
-            me.stopPropagation();
+            me.stopImmediatePropagation();
             me.preventDefault();                                                                                                                                                                                            
             //nie łapie dzieci (co)
-            const page_y = me.pageY - start_pos.y;
             const page_x = me.pageX - start_pos.x;
+            const page_y = me.pageY - start_pos.y;
             //console.log(start_pos);                                                                                                   
-            if(page_y < 0){                                                 
-                div.style.top = `${me.pageY}px`;
-            }
-            else div.style.top = `${start_pos.y}px`;
+
 
             if(page_x < 0){                              
                 div.style.left = `${me.pageX}px`;
             }
             else div.style.left = `${start_pos.x}px`;
 
-            div.style.height = `${Math.abs(page_y)}px`;
+            if(page_y < 0){                                                 
+                div.style.top = `${me.pageY}px`;
+            }
+            else div.style.top = `${start_pos.y}px`;
+
+
             div.style.width = `${Math.abs(page_x)}px`;
+            div.style.height = `${Math.abs(page_y)}px`;
+            
 
             last_pos.x = me.pageX;
             last_pos.y = me.pageY;
@@ -261,7 +278,7 @@ class MainController{
     }
 
     async load_file(file_input: HTMLInputElement){
-        if(file_input.files?.length == 0) {
+        if(file_input.files?.length == 0){
             file_input.click();
             return;
         }
@@ -280,6 +297,7 @@ class MainController{
     }
 
     copy(){
+        this.copy_on = true;
         const copied_indexes = [...this.selected_right];
         const top_left_pos: plane_vector = {x: Infinity, y: Infinity};
 
@@ -301,7 +319,7 @@ class MainController{
         })
 
         indexes_copy = indexes_copy.map((copied_index)=>{
-            return {
+            return{
                 x: copied_index.x - top_left_pos.x,
                 y: copied_index.y - top_left_pos.y,
                 url: copied_index.url
@@ -311,21 +329,85 @@ class MainController{
         this.copied_indexes = indexes_copy;
         console.log(this.copied_indexes);
         
+        this.selected_right.forEach((block)=>{
+            this.right_blocks[block].classList.remove("right-highlighted");
+        })
+        this.selected_right.clear();
+        //this.previous_right_selected.clear();        
     }
 
     paste(){
-        if(!this.copied_indexes) return;
-        //const plane = document.createElement("div");
-        this.right_side.addEventListener("mousemove", this.paste_visualization);
+        if(!this.copied_indexes.length) return;
+        const controller = new AbortController();
+        this.right_side.addEventListener("mousemove", (e)=>this.paste_visualization(e, false), {signal: controller.signal});
+        this.right_side.addEventListener("click", (e)=>{
+            this.copy_on = false;
+            controller.abort();
+            
+            this.paste_visualization(e, true);
+            this.last_vis_copy.forEach((block)=>{
+                this.right_blocks[block].classList.remove("right-copied");
+            })
+            this.copied_indexes = [];
+            this.last_vis_copy = [];
+        });
     }
 
-    paste_visualization(e: MouseEvent){
-        console.log(e);
-        const left_pos = e.pageX
-        const top_pos = e.pageY;
-        const first_index = Math.floor(top_pos / 25) * 44 + Math.floor(left_pos / 25);
-        //console.log(first_index);
+    paste_visualization(e: MouseEvent, submit_copy: boolean){
+        if(!this.copied_indexes.length) return;
+        const block_size = 25;
+        const left_pos = e.pageX - this.right_side.offsetLeft;
+        const top_pos = e.pageY - this.right_side.offsetTop;
+
+
+        //top left block of green plane
+        const first_index_coords: plane_vector = {
+            x: Math.floor(left_pos / block_size), 
+            y: Math.floor(top_pos / block_size)
+        }
+        if(first_index_coords.x < 0 || first_index_coords.y < 0) return;
+        const first_index = first_index_coords.y * 44 + first_index_coords.x;
+
+        if(first_index == this.last_copy_position) return;
+        this.last_copy_position = first_index;
         
+
+        //get position of blocks in this plane 
+        const calc_index = (index: plane_copy) =>{
+            return first_index + 44 * index.y + index.x;
+        }
+        this.right_reset();
+        
+        this.last_vis_copy = this.copied_indexes.filter((index)=>{
+            if(first_index_coords.x + index.x >= 44 || first_index_coords.y + index.y >= 38) return false;
+            return true;
+           
+        }).map((index)=>{
+            const plane_element = calc_index(index);
+            this.right_blocks[plane_element].src = index.url;
+            
+            if(submit_copy){               
+                for(let i = 0; this.left_images.length; i += 1){
+                    if(this.left_images[i] == index.url){
+                        this.right_hash_map.set(plane_element, i);
+                        break;
+                    }
+                }
+            }
+            else this.right_blocks[plane_element].classList.add("right-copied");
+
+            return plane_element;
+        })
+    }
+
+    right_reset(){
+        this.last_vis_copy.forEach((index)=>{
+            const get_url = this.right_hash_map.get(index);
+            const url = get_url !== undefined ? this.left_images[get_url] : blank_image;
+            const block = this.right_blocks[index];
+            if(block.src != url) block.src = url;
+            if(block.classList.contains("right-copied")) block.classList.remove("right-copied");
+        })
     }
 }
 

@@ -108,12 +108,18 @@ body{
             scale: 1.1;
             transition: scale 0.5s;
         }
+
+        .right-copied{
+            border: 3px solid green;
+        }
     }
     .plane{
         position: absolute;
         border: 1px solid darkgoldenrod;
         background-color: rgba($color: yellow, $alpha: 0.5);
     }
+
+    
 }
 
 .right_image{
