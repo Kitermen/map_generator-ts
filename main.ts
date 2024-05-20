@@ -3,29 +3,9 @@ import read_tts from "./src/ts/read_tts";
 import Blocks from "./src/ts/generating/Blocks";
 import {Menu} from "./src/ts/Menu";
 
+//stackoverflow masterrace
 const blank_image = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-// const save = (info: Map<number, number>)=>{
-//     const data_object = JSON.stringify(Object.fromEntries(info.entries()))
-
-//     const dowload_button = document.createElement("a")!;
-//     const blob = new Blob([data_object]);
-
-//     dowload_button.href = URL.createObjectURL(blob);
-//     dowload_button.download = "data.json";
-//     dowload_button.click();
-// }
-
-// const right_blocks:HTMLImageElement[] = [];
-// const right_hash_map:Map<number, number> = new Map();
-// const cp_hash_map:Map<number, number> = new Map();
-// let selected_right = new Set<number>();
-
-// const left = document.getElementById("app_left")!;
-// const check:HTMLInputElement = document.querySelector(".auto-allow")!;
-// const right_blocks_container:HTMLDivElement = document.querySelector(".right-side-cont")!;
-
-// const left_indexes:string[] = [];
 
 type plane_vector = {
     x: number;
@@ -57,8 +37,11 @@ class MainController{
     copy_on: boolean = false;
     copied_indexes: plane_copy[] = [];
     last_copy_position: number = -1;
-    //visualization
+    //vis - visualization
     last_vis_copy: number[] = [];
+
+    history: Array<Map<number, number>> = [];
+    history_id: number = 0;
 
     timeout: number;
 
@@ -71,7 +54,7 @@ class MainController{
         this.right_side = document.querySelector("#app_right")!;
         this.previous_right_selected = new Set<number>();
         this.timeout = 0;
-        //this.start_ind = 0;
+        
 
         this.left_generating();
         this.right_generating();
@@ -80,6 +63,9 @@ class MainController{
 
         this.menu = new Menu("menu", "menu-btn")
         .addMenu(document.querySelector(".right-side-cont")!)
+
+        .callback("undo", ()=>this.undo(), "click", "z")
+        .callback("redo", ()=>this.redo(), "click", "y")
 
         .callback("copy", ()=>this.copy(), "click", "c")
         .callback("paste", ()=>this.paste(), "click", "v")
@@ -96,7 +82,7 @@ class MainController{
             for(let j = 0; j < 16; j += 1){
                 const x = i < 20 ? j * 48 : j * 48 + 768;
                 //class obj
-                const blocksObj = Blocks.gen_left({x , y: (i % 20)*48, w: 48, h: 48});
+                const blocksObj = Blocks.gen_left({x , y: (i % 20) * 48, w: 48, h: 48});
                 this.left_images.push(blocksObj.canvas.toDataURL());
                 //const {div, canvas} = blocksObj.gen_left();
 
@@ -109,8 +95,11 @@ class MainController{
                     this.selected_right.forEach(sel=>{
                         this.right_blocks[sel].src  = url;
                         this.right_blocks[sel].classList.remove("right-highlighted");
-                        this.right_hash_map.set(sel, left_index_copy);
+                        this.right_hash_map.set(sel, left_index_copy);                        
                     })
+                    this.history.push(new Map(this.right_hash_map));
+                    this.history_id += 1;
+                    console.log(this.history);
 
                     if(!this.check.checked){
                         this.selected_right.clear();
@@ -409,9 +398,53 @@ class MainController{
             if(block.classList.contains("right-copied")) block.classList.remove("right-copied");
         })
     }
+
+    undo(){
+        this.history_id -= 1;
+        //console.log(this.history.length);
+        //console.log(this.history_id);
+        if(this.history.length - this.history_id <= 0 || this.history_id < 0){
+            this.history_id += 1;
+            return;
+        }
+        
+        
+        const json_data = this.history[this.history_id - 1];
+
+        this.right_blocks.forEach(block=>block.src = blank_image);
+
+        const hash_map: Map<number, number> = new Map(json_data);
+
+        for(const [key, value] of hash_map){
+            this.right_blocks[key].src = this.left_images[value];
+        }
+    }
+
+    redo(){
+        this.history_id += 1;
+        //console.log(this.history.length);
+        //console.log(this.history_id);
+        
+        
+        if(this.history.length < this.history_id){
+            this.history_id -= 1;
+            return;   
+        }
+        console.log("YM");
+        
+        const json_data = this.history[this.history_id - 1];
+
+        this.right_blocks.forEach(block=>block.src = blank_image);
+
+        const hash_map: Map<number, number> = new Map(json_data);
+        
+        for(const [key, value] of hash_map){
+            this.right_blocks[key].src = this.left_images[value];
+        }
+    }
 }
 
-sprite_img.addEventListener("load", () => {const controller = new MainController()});
+sprite_img.addEventListener("load", ()=>{const controller = new MainController()});
 
 
 const hehe = document.querySelector(".cocainen")!;
