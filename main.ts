@@ -32,7 +32,7 @@ class MainController{
     start_ind: number;
     previous_right_selected: Set<number>;
     right_hash_map: Map<number, number> = new Map();
-    selected_right = new Set<number>();
+    right_selected = new Set<number>();
 
     copy_on: boolean = false;
     copied_indexes: plane_copy[] = [];
@@ -88,28 +88,27 @@ class MainController{
 
                 //listeners
                 const left_index_copy = left_index;
-                blocksObj.canvas.addEventListener("click", ()=>{
-                    if(!this.selected_right.size) return;
-
+                blocksObj.canvas.addEventListener("click", (e)=>{
+                    if(!this.right_selected.size) return;
+                    
                     const url = blocksObj.canvas.toDataURL();
-                    this.selected_right.forEach(sel=>{
+                    this.right_selected.forEach(sel=>{
                         this.right_blocks[sel].src  = url;
                         this.right_blocks[sel].classList.remove("right-highlighted");
                         this.right_hash_map.set(sel, left_index_copy);                        
                     })
                     this.history.push(new Map(this.right_hash_map));
                     this.history_id += 1;
-                    console.log(this.history);
 
                     if(!this.check.checked){
-                        this.selected_right.clear();
+                        this.right_selected.clear();
                         //this.previous_right_selected.clear();
                     }
                     else{
-                        const index = [...this.selected_right].pop()!+1;
-                        this.selected_right = new Set([index]);
+                        const index = [...this.right_selected].pop()!+1;
+                        this.right_selected = new Set([index]);
                         this.right_blocks[index].classList.add("right-highlighted");
-                        //! == nie może być undefined
+                        //! == can't be undefined
                     }
                 })
                 this.left_side.appendChild(blocksObj.div);
@@ -125,16 +124,23 @@ class MainController{
             blockObj.img.addEventListener("mousedown", (e)=>{
                 //KOPIED INDEXES --- wylaczenie zaznaczania kiedy lopiowanie wlaczone flaga
                 if(!this.copy_on){
-                    console.log(e.target);
                     if(e.button === 2) return;
                     if(!e.ctrlKey){
-                        this.selected_right.forEach(sel=>this.right_blocks[sel].classList.remove("right-highlighted"));    
-                        this.selected_right.clear();
+                        this.right_selected.forEach(sel=>this.right_blocks[sel].classList.remove("right-highlighted"));    
+                        this.right_selected.clear();
                         //this.previous_right_selected.clear();
                     }
-                    this.selected_right.add(index);
+                    else if(e.ctrlKey){
+                        console.log("AHA");
+                        setTimeout(()=>{
+                            this.right_blocks[index].classList.remove("right-highlighted");
+                            this.right_selected.delete(index);
+                        }, 1)
+                        
+                    }
+                    this.right_selected.add(index);
                     blockObj.img.classList.add("right-highlighted");
-                }
+                }                
             })
             this.right_blocks.push(blockObj.img);
             this.right_side.appendChild(blockObj.div);
@@ -142,10 +148,11 @@ class MainController{
     }
 
     async color(inds: Set<number>){
-        this.previous_right_selected.forEach(sel=>{if(!inds.has(sel) && !this.selected_right.has(sel)) this.right_blocks[sel].classList.remove("right-highlighted")})
+        this.previous_right_selected.forEach(sel=>{if(!inds.has(sel) && !this.right_selected.has(sel)) this.right_blocks[sel].classList.remove("right-highlighted")})
         inds.forEach(ind => {
             if(!this.previous_right_selected.has(ind)){this.right_blocks[ind].classList.add("right-highlighted")}
         });
+        
         this.previous_right_selected = inds;
     }
 
@@ -189,7 +196,6 @@ class MainController{
             if(indexes.size) this.color(indexes);
         }
         this.timeout = Date.now();
-        
         return indexes;
     }
     
@@ -216,8 +222,7 @@ class MainController{
             me.preventDefault();                                                                                                                                                                                            
             //nie łapie dzieci (co)
             const page_x = me.pageX - start_pos.x;
-            const page_y = me.pageY - start_pos.y;
-            //console.log(start_pos);                                                                                                   
+            const page_y = me.pageY - start_pos.y;                                                                                                  
 
 
             if(page_x < 0){                              
@@ -244,11 +249,14 @@ class MainController{
 
         this.right_side.addEventListener("mouseup", (e)=>{
             this.select_handler(start_pos, last_pos);
+            //console.log(e.target);
+            //console.log(this.previous_right_selected.size);
+            
             if(e.ctrlKey){
-                this.previous_right_selected.forEach(sel=>this.selected_right.add(sel));
+                this.previous_right_selected.forEach(sel=>this.right_selected.add(sel));
             }
             else if(this.previous_right_selected.size){
-                this.selected_right = this.previous_right_selected;
+                this.right_selected = this.previous_right_selected;
             }
             controller.abort();
             div.remove();
@@ -287,7 +295,7 @@ class MainController{
 
     copy(){
         this.copy_on = true;
-        const copied_indexes = [...this.selected_right];
+        const copied_indexes = [...this.right_selected];
         const top_left_pos: plane_vector = {x: Infinity, y: Infinity};
 
         let indexes_copy: plane_copy[] = copied_indexes.map((copied_index)=>{
@@ -318,10 +326,10 @@ class MainController{
         this.copied_indexes = indexes_copy;
         console.log(this.copied_indexes);
         
-        this.selected_right.forEach((block)=>{
+        this.right_selected.forEach((block)=>{
             this.right_blocks[block].classList.remove("right-highlighted");
         })
-        this.selected_right.clear();
+        this.right_selected.clear();
         //this.previous_right_selected.clear();        
     }
 
