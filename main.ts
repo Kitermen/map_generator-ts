@@ -60,15 +60,20 @@ class MainController{
         this.right_generating();
 
         this.right_side.addEventListener("mousedown", (e)=>this.mass_right_selecting(e));
-
+        
         this.menu = new Menu("menu", "menu-btn")
+        
         .addMenu(document.querySelector(".right-side-cont")!)
 
         .callback("undo", ()=>this.undo(), "click", "z")
         .callback("redo", ()=>this.redo(), "click", "y")
 
+        .callback("cut", ()=>this.cut(), "click", "x")
+
         .callback("copy", ()=>this.copy(), "click", "c")
         .callback("paste", ()=>this.paste(), "click", "v")
+
+        .callback("delete", ()=>this.delete(), "click", "Delete")
 
         .callback("save", ()=>this.save_to_file(this.right_hash_map), "click", "s")
         .callback("load", (element)=>this.load_file(element as HTMLInputElement), "change", "l")
@@ -264,6 +269,8 @@ class MainController{
     }
 
     async save_to_file(info: Map<number, number>){
+        console.log("save to file");
+        
         const data_object = JSON.stringify(Object.fromEntries(info.entries()))
 
         const dowload_button = document.createElement("a")!;
@@ -275,6 +282,8 @@ class MainController{
     }
 
     async load_file(file_input: HTMLInputElement){
+        console.log("load file");
+        
         if(file_input.files?.length == 0){
             file_input.click();
             return;
@@ -294,6 +303,8 @@ class MainController{
     }
 
     copy(){
+        console.log("copy");
+        
         this.copy_on = true;
         const copied_indexes = [...this.right_selected];
         const top_left_pos: plane_vector = {x: Infinity, y: Infinity};
@@ -324,16 +335,18 @@ class MainController{
         })
 
         this.copied_indexes = indexes_copy;
-        console.log(this.copied_indexes);
         
         this.right_selected.forEach((block)=>{
-            this.right_blocks[block].classList.remove("right-highlighted");
+            this.right_blocks[block].classList.remove("right-highlighted");            
         })
         this.right_selected.clear();
         //this.previous_right_selected.clear();        
     }
 
     paste(){
+        console.log("paste");        
+        console.log(this.copied_indexes);
+        
         if(!this.copied_indexes.length) return;
         const controller = new AbortController();
         this.right_side.addEventListener("mousemove", (e)=>this.paste_visualization(e, false), {signal: controller.signal});
@@ -408,14 +421,14 @@ class MainController{
     }
 
     undo(){
+        console.log("undo");
+        
         this.history_id -= 1;
-        //console.log(this.history.length);
-        //console.log(this.history_id);
+
         if(this.history.length - this.history_id <= 0 || this.history_id < 0){
             this.history_id += 1;
             return;
         }
-        
         
         const json_data = this.history[this.history_id - 1];
 
@@ -429,16 +442,14 @@ class MainController{
     }
 
     redo(){
-        this.history_id += 1;
-        //console.log(this.history.length);
-        //console.log(this.history_id);
+        console.log("redo");
         
+        this.history_id += 1;        
         
         if(this.history.length < this.history_id){
             this.history_id -= 1;
             return;   
         }
-        console.log("YM");
         
         const json_data = this.history[this.history_id - 1];
 
@@ -450,7 +461,21 @@ class MainController{
             this.right_blocks[key].src = this.left_images[value];
         }
     }
+
+    cut(){
+        console.log("CUT");
+        
+    }
+
+    delete(){
+        this.right_selected.forEach(sel=>{
+            this.right_blocks[sel].src  = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            this.right_blocks[sel].classList.remove("right-highlighted");
+            this.right_hash_map.delete(sel);                       
+        })
+    }
 }
+
 
 sprite_img.addEventListener("load", ()=>{const controller = new MainController()});
 

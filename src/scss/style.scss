@@ -46,6 +46,7 @@ body{
         height: $block_size;
         transition: opacity 0.4s;
         opacity: 0.9;
+        cursor: pointer;
 
         &.highlighted{
             border: 3px solid cyan;
@@ -97,6 +98,7 @@ body{
         width: $block_size;
         height: $block_size;
         border: 1px dotted gray;
+        cursor: pointer;
     
         .sprite-image{
             width: $block_size;
