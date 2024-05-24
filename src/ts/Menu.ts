@@ -50,12 +50,13 @@ export class Menu{
                 if(e.ctrlKey && e.key == shortcut){
                     call(element)
                 }
-                if(e.key == "Delete") console.log(" TO DILIT");
-                
-                else if(e.key == "Delete"){   
-
+                //context - delete
+                else if(shortcut == "Delete"){
+                    console.log("TO DILIT");
                     call(element)
-                }
+                } 
+                
+                
             })
         }
         return this;
