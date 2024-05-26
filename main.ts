@@ -70,7 +70,7 @@ class MainController{
 
         .callback("cut", ()=>this.cut(), "click", "x")
 
-        .callback("copy", ()=>this.copy(), "click", "c")
+        .callback("copy", ()=>this.copy(false), "click", "c")
         .callback("paste", ()=>this.paste(), "click", "v")
 
         .callback("delete", ()=>this.delete(), "click", "Delete")
@@ -302,7 +302,7 @@ class MainController{
         file_input.value = "";
     }
 
-    copy(){
+    copy(cutting: boolean){
         console.log("copy");
         
         this.copy_on = true;
@@ -335,12 +335,12 @@ class MainController{
         })
 
         this.copied_indexes = indexes_copy;
-        
-        this.right_selected.forEach((block)=>{
-            this.right_blocks[block].classList.remove("right-highlighted");            
-        })
-        this.right_selected.clear();
-        //this.previous_right_selected.clear();        
+        if(!cutting){
+            this.right_selected.forEach((block)=>{
+                this.right_blocks[block].classList.remove("right-highlighted");            
+            })
+            this.right_selected.clear();
+        }      
     }
 
     paste(){
@@ -388,10 +388,11 @@ class MainController{
         }
         this.right_reset();
         
+        console.log(this.last_vis_copy);
         this.last_vis_copy = this.copied_indexes.filter((index)=>{
             if(first_index_coords.x + index.x >= 44 || first_index_coords.y + index.y >= 38) return false;
             return true;
-           
+        
         }).map((index)=>{
             const plane_element = calc_index(index);
             this.right_blocks[plane_element].src = index.url;
@@ -410,7 +411,7 @@ class MainController{
         })
     }
 
-    right_reset(){
+    async right_reset(){
         this.last_vis_copy.forEach((index)=>{
             const get_url = this.right_hash_map.get(index);
             const url = get_url !== undefined ? this.left_images[get_url] : blank_image;
@@ -431,11 +432,8 @@ class MainController{
         }
         
         const json_data = this.history[this.history_id - 1];
-
         this.right_blocks.forEach(block=>block.src = blank_image);
-
         const hash_map: Map<number, number> = new Map(json_data);
-
         for(const [key, value] of hash_map){
             this.right_blocks[key].src = this.left_images[value];
         }
@@ -452,24 +450,25 @@ class MainController{
         }
         
         const json_data = this.history[this.history_id - 1];
-
         this.right_blocks.forEach(block=>block.src = blank_image);
-
         const hash_map: Map<number, number> = new Map(json_data);
-        
         for(const [key, value] of hash_map){
             this.right_blocks[key].src = this.left_images[value];
         }
     }
 
     cut(){
-        console.log("CUT");
-        
+        this.copy(true);
+        this.right_selected.forEach(sel=>{
+            this.right_blocks[sel].src  = blank_image;
+            this.right_blocks[sel].classList.remove("right-highlighted");
+            this.right_hash_map.delete(sel);                       
+        })
     }
 
     delete(){
         this.right_selected.forEach(sel=>{
-            this.right_blocks[sel].src  = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            this.right_blocks[sel].src  = blank_image;
             this.right_blocks[sel].classList.remove("right-highlighted");
             this.right_hash_map.delete(sel);                       
         })

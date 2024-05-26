@@ -47,15 +47,14 @@ export class Menu{
                 //console.log(shortcut);
                 console.log(e.key);
                 
-                if(e.ctrlKey && e.key == shortcut){
-                    call(element)
-                }
                 //context - delete
-                else if(shortcut == "Delete"){
+                if(shortcut == "Delete" && !e.ctrlKey){
                     console.log("TO DILIT");
                     call(element)
                 } 
-                
+                if(e.ctrlKey && e.key == shortcut){
+                    call(element)
+                }              
                 
             })
         }
