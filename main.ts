@@ -192,7 +192,6 @@ class MainController{
         const indexes = new Set<number>()
         for(let top = Math.floor(start.y / block_size); top < Math.ceil(end.y / block_size); top += 1){
             this.start_ind = top*44 + Math.floor(start.x / block_size);
-            //console.log(this.start_ind);
             
             new Array(Math.ceil(size.width / block_size)).fill(0).map((_, ind)=>indexes.add(this.start_ind+ind));
             //0 są nakładane, by można było wstawić na nie indexy, a _ sprawia że 0 tak na prawdę nie istnieją 
@@ -203,9 +202,9 @@ class MainController{
         this.timeout = Date.now();
         return indexes;
     }
-    
 
     mass_right_selecting(e: MouseEvent){
+        this.selected_reset();
         // || allowed code to finally execute paste method 
         if(e.button === 2 || this.copied_indexes.length) return;
         const div = document.createElement("div");
@@ -222,7 +221,7 @@ class MainController{
         const controller = new AbortController();
 
 
-        this.right_side.addEventListener("mousemove", (me)=>{
+        this.right_side.addEventListener("mousemove", (me)=>{            
             me.stopImmediatePropagation();
             me.preventDefault();                                                                                                                                                                                            
             //nie łapie dzieci (co)
@@ -266,6 +265,13 @@ class MainController{
             controller.abort();
             div.remove();
         }, {once: true});  
+    }
+
+    selected_reset(){
+        this.right_blocks.forEach((block)=>block.classList.remove("right-highlighted"));
+        this.right_selected.forEach((index)=>{
+            this.right_blocks[index].classList.add("right-highlighted");
+        })
     }
 
     async save_to_file(info: Map<number, number>){
@@ -363,7 +369,7 @@ class MainController{
         });
     }
 
-    paste_visualization(e: MouseEvent, submit_copy: boolean){
+    paste_visualization(e: MouseEvent, submit_copy: boolean){      
         if(!this.copied_indexes.length) return;
         const block_size = 25;
         const left_pos = e.pageX - this.right_side.offsetLeft;
@@ -377,18 +383,17 @@ class MainController{
         }
         if(first_index_coords.x < 0 || first_index_coords.y < 0) return;
         const first_index = first_index_coords.y * 44 + first_index_coords.x;
-
-        if(first_index == this.last_copy_position) return;
+       
+        if(first_index == this.last_copy_position && !submit_copy) return;
         this.last_copy_position = first_index;
-        
 
         //get position of blocks in this plane 
         const calc_index = (index: plane_copy) =>{
             return first_index + 44 * index.y + index.x;
         }
+
         this.right_reset();
-        
-        console.log(this.last_vis_copy);
+
         this.last_vis_copy = this.copied_indexes.filter((index)=>{
             if(first_index_coords.x + index.x >= 44 || first_index_coords.y + index.y >= 38) return false;
             return true;
@@ -397,7 +402,7 @@ class MainController{
             const plane_element = calc_index(index);
             this.right_blocks[plane_element].src = index.url;
             
-            if(submit_copy){               
+            if(submit_copy){     
                 for(let i = 0; this.left_images.length; i += 1){
                     if(this.left_images[i] == index.url){
                         this.right_hash_map.set(plane_element, i);

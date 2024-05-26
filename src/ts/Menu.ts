@@ -35,7 +35,7 @@ export class Menu{
         //console.log(element);
         
         if(element){
-            console.log(element);
+            //console.log(element);
             element.addEventListener(event, ()=>{
                 call(element);
                 this.dialog.close();
@@ -44,12 +44,9 @@ export class Menu{
             
             if(shortcut && this.dom) document.addEventListener("keydown", (e)=>{
                 e.preventDefault();
-                //console.log(shortcut);
-                console.log(e.key);
                 
                 //context - delete
                 if(shortcut == "Delete" && !e.ctrlKey){
-                    console.log("TO DILIT");
                     call(element)
                 } 
                 if(e.ctrlKey && e.key == shortcut){
