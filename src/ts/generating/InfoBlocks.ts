@@ -4,7 +4,9 @@ interface InfoBlocks{
 
 abstract class PosBlocks implements InfoBlocks{
     div: HTMLDivElement;
-    constructor(div: HTMLDivElement){this.div = div}
+    constructor(div: HTMLDivElement){
+        this.div = div
+    }
 }
 
 class LeftBlock extends PosBlocks{

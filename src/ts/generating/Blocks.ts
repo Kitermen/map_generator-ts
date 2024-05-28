@@ -2,6 +2,12 @@ import sprite_img from "../sprite";
 import { blank_image } from "../empty_block";
 import { LeftBlock, RightBlock } from "./InfoBlocks";
 
+/**
+ * @interface BlocksPos and @interface BlocksSizing are used to initialize @param x, @param y, @param w, @param h (types are better) 
+ * @module Blocks.ts contains 2 methods that create left side and right side of application
+ * @param x, @param y, @param w, @param h, are passed in main @module main.ts (line 90)
+ */
+
 interface BlocksPos{
     x: number;
     y: number;
@@ -12,18 +18,10 @@ interface BlocksSizing extends BlocksPos{
     h: number;
 }
 
-// interface BlocksData extends BlocksSizing{}
-
-// type ReturnParams = {
-//     div: HTMLDivElement;
-// }
-
-// type ReturnLeft = ReturnParams & {canvas: HTMLCanvasElement};
-// type ReturnRight = ReturnParams & {img: HTMLImageElement};
 
 export default class Blocks{
     
-    static gen_left({x,y,w,h}: BlocksSizing): LeftBlock{
+    static gen_left({x, y, w, h}: BlocksSizing): LeftBlock{
         const div = document.createElement("div");
         div.classList.add("sprite-block");
     
