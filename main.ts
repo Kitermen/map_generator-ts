@@ -1,5 +1,4 @@
 import sprite_img from "./src/ts/sprite";
-import read_tts from "./src/ts/read_tts";
 import Blocks from "./src/ts/generating/Blocks";
 import {Menu} from "./src/ts/Menu";
 
@@ -18,8 +17,13 @@ interface plane_copy{
     y: number;
 }
 
-
+/**
+ * @class MainController as the 'body' class of the application
+ */
 class MainController{
+    /**
+     * initializing global params in application
+     */
     menu: Menu
 
     left_side: HTMLDivElement;
@@ -61,6 +65,10 @@ class MainController{
 
         this.right_side.addEventListener("mousedown", (e)=>this.mass_right_selecting(e));
         
+/**
+ * initializing @class Menu and its callbacks for buttons
+ */
+
         this.menu = new Menu("menu", "menu-btn")
         
         .addMenu(document.querySelector(".right-side-cont")!)
@@ -107,7 +115,6 @@ class MainController{
 
                     if(!this.check.checked){
                         this.right_selected.clear();
-                        //this.previous_right_selected.clear();
                     }
                     else{
                         const index = [...this.right_selected].pop()!+1;
@@ -217,14 +224,14 @@ class MainController{
         div.style.top = `${e.pageY}px`;
         div.style.left = `${e.pageX}px`;
 
-        //mousemove - turnoff to remove massive lags from code
+        //mousemove - turnoff to remove that one addEventListener
         const controller = new AbortController();
 
 
         this.right_side.addEventListener("mousemove", (me)=>{            
             me.stopImmediatePropagation();
             me.preventDefault();                                                                                                                                                                                            
-            //nie łapie dzieci (co)
+            //nie łapie dzieci (lol)
             const page_x = me.pageX - start_pos.x;
             const page_y = me.pageY - start_pos.y;                                                                                                  
 
@@ -283,7 +290,7 @@ class MainController{
         const blob = new Blob([data_object]);
     
         dowload_button.href = URL.createObjectURL(blob);
-        dowload_button.download = "data.json";
+        dowload_button.download = "map.json";
         dowload_button.click();
     }
 
@@ -350,9 +357,7 @@ class MainController{
     }
 
     paste(){
-        console.log("paste");        
-        console.log(this.copied_indexes);
-        
+        console.log("paste");               
         if(!this.copied_indexes.length) return;
         const controller = new AbortController();
         this.right_side.addEventListener("mousemove", (e)=>this.paste_visualization(e, false), {signal: controller.signal});
@@ -414,6 +419,10 @@ class MainController{
 
             return plane_element;
         })
+        if(submit_copy){
+            this.history.push(new Map(this.right_hash_map));
+            this.history_id += 1;
+        }
     }
 
     async right_reset(){
@@ -481,8 +490,4 @@ class MainController{
 }
 
 
-sprite_img.addEventListener("load", ()=>{const controller = new MainController()});
-
-
-const hehe = document.querySelector(".cocainen")!;
-hehe.addEventListener("click", ()=>read_tts("cocaine is not good for u"))
+sprite_img.addEventListener("load", () => {const controller = new MainController()});

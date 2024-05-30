@@ -4,7 +4,7 @@ import { LeftBlock, RightBlock } from "./InfoBlocks";
 
 /**
  * @interface BlocksPos and @interface BlocksSizing are used to initialize @param x, @param y, @param w, @param h (types are better) 
- * @module Blocks.ts contains 2 methods that create left side and right side of application
+ * @module Blocks.ts contains 2 methods, gen_left @returns left side and gen_rght @returns right side of application
  * @param x, @param y, @param w, @param h, are passed in main @module main.ts (line 90)
  */
 

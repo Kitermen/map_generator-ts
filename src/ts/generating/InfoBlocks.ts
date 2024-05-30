@@ -1,3 +1,9 @@
+/**
+ * initializing @class PosBlocks, @class LeftBlocks, @class RightBlocks later used in @module Blocks.ts
+ * @todo try to use @interface
+ */
+
+
 interface InfoBlocks{
     div: HTMLDivElement;
 }
