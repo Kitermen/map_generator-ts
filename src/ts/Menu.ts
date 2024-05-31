@@ -26,6 +26,7 @@ export class Menu{
 
     //clicking on right-bloks shows / hides btns menu 
     addMenu(dom: HTMLElement): Menu{
+        window.addEventListener("contextmenu", function(e) { e.preventDefault(); })
         this.dom = dom;
         this.dom.addEventListener("contextmenu", (e)=>{
             e.preventDefault();
@@ -57,9 +58,11 @@ export class Menu{
                 
                 //context - delete
                 if(shortcut == "Delete" && !e.ctrlKey){
+                    
                     call(element)
                 } 
                 if(e.ctrlKey && e.key == shortcut){
+                    
                     call(element)
                 }              
                 

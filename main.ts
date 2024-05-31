@@ -4,7 +4,7 @@ import {Menu} from "./src/ts/Menu";
 
 //stackoverflow masterrace
 const blank_image = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-
+window.addEventListener("contextmenu", function(e) { e.preventDefault(); })
 
 type plane_vector = {
     x: number;
@@ -63,6 +63,7 @@ class MainController{
         this.left_generating();
         this.right_generating();
 
+        //this.right_side.addEventListener("click", function(e) { e.preventDefault(); })
         this.right_side.addEventListener("mousedown", (e)=>this.mass_right_selecting(e));
         
 /**

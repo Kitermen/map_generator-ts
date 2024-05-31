@@ -125,3 +125,51 @@ body{
 .right_image{
     display: none;
 }
+
+.menu{
+    width: 400px;
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    margin-left: -150px;
+    border: 6px solid goldenrod;
+    padding: 10px;
+    outline: none;
+
+    div.menu-btn{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        padding: 2px;
+        border-top: 1px solid grey;
+
+        .command{
+            width: 180px;
+        }
+
+        &:hover{
+            background-color: darkgrey;
+        }
+    }
+
+    div.menu-input{
+        display: inline-block;
+        width: 100%;
+        padding: 2px;
+        border-top: 1px solid grey;
+
+        label{
+            display: flex;
+            flex-direction: row;
+
+            .command{
+                width: 180px;
+            }
+        }
+
+        &:hover{
+            background-color: darkgrey;
+        }
+    }
+
+}
